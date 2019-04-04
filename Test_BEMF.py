@@ -1,5 +1,5 @@
+import os
 from openpyxl import load_workbook
-#import numpy as np
 from nptdms import TdmsFile
 
 class TDMS():# read TDMS files and dict it.
@@ -10,7 +10,7 @@ class TDMS():# read TDMS files and dict it.
 
     def Read_Tdms(self):
         Data_List = []
-        tdmsfile = TdmsFile(self.filename+".tdms")
+        tdmsfile = TdmsFile(self.filename)
 
         for name in self.listforname:
             Data_List.append(tdmsfile.object(self.group,name).data)
@@ -26,37 +26,72 @@ class Excel():  # read and write the xlsx and process.
         self.sheetname = sheetname
         self.listforposition = listforposition
         self.wb = load_workbook(self.filename)
+
     def WriteBEMF(self):
-            current_sheet = self.wb[self.sheetname]
+        current_sheet = self.wb[self.sheetname]
 
         for v in Dict_temp["MB_Command.Speed"]:
             speed_range = [1000,2000,3000,4000]
-            i = speed_range.index(v)
-            if i != -1:
+            try:
+                i = speed_range.index(v)
+            except ValueError:
+                status = "BEMF file Write Failed !"
+            else:
                 position = self.listforposition[i]+"14"
                 current_sheet[position] = self.Dict_temp["U-RMS.Voltage"][i]
                 position = self.listforposition[i]+"15"
                 current_sheet[position] = self.Dict_temp["V-RMS.Voltage"][i]
                 position = self.listforposition[i]+"16"
                 current_sheet[position] = self.Dict_temp["W-RMS.Voltage"][i]
+                position = self.listforposition[i]+"20"
+                current_sheet[position] = self.Dict_temp["U-F.Voltage"][i]
+                position = self.listforposition[i]+"21"
+                current_sheet[position] = self.Dict_temp["V-F.Voltage"][i]
+                position = self.listforposition[i]+"22"
+                current_sheet[position] = self.Dict_temp["W-F.Voltage"][i]
+                status = "BEMF file Write successful !"
+        self.wb.save(Excel_filename)
+        print(status)
+
+
+
+class T_input():# input value set
+    def BEMF_input(self):
+        dir_list = os.listdir(".")
+        listforTDMS = []
+        for f in dir_list:
+            if ".tdms" in f.lower():
+                listforTDMS.append(f)
+        len_listforTDMS = len(listforTDMS)
+        num = range(0,len_listforTDMS)
+        file_name_dict =dict(zip(num,listforTDMS))
+
+        for key, value in file_name_dict.items():
+            print("{0}:{1}".format(key,value))
+        
+        while True:
+            filename_num = input("please choose the Num for Source BEMF file(.tdms)!\n")
+            filename_num = int(filename_num)
+
+            if filename_num >= 0 and filename_num < len_listforTDMS:
+                filename = file_name_dict[filename_num]
+                break
             else:
-                print("%srpm haven't any value"%speed_range[i])
-        wb.save(Excel_filename)
+                print("you should choose 0~ %d"%(len_listforTDMS-1))
 
-filename = "M21P3-s-19nbli- A01-006-190322$BEMF"
+        choice = input("please choose the group[1/2]:\n1.Instantly Data(default) 2.Meta Data\n")
+        if int(choice.strip()) != 2:
+            group = "Instantly Data"
+        else:
+            group ="Meta Data"
 
-class Info_input():# input value set
-    choice = input("please choose the group[1/2]:/n1.Instantly Data(default) 2.Meta Data/n")
-    if choice.strip() !="2":
-        group = "Instantly Data"
-    else:
-        group ="Meta Data"
-
-
+        return (filename,group)
 # Start Process
 
-Info_input()
-listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage","V-RMS.Voltage","W-RMS.Voltage"]
+filename , group = T_input().BEMF_input()
+#filename = "M21P3-s-19nbli- A01-006-190322$BEMF.tdms"
+#group = "Instantly Data"
+listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage","V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
 listforposition = ["E","F","G","H"]
 Excel_filename = "测试表格2小时.XLSX"
 sheetname = "2.Motor BEMF"
