@@ -86,11 +86,26 @@ class T_input():# input value set
             group ="Meta Data"
 
         return (filename,group)
-# Start Process
 
+class Jobs():
+    def __init__(self,Job_list):
+        self.Job_list = Job_list
+        self.Jobs_numlist = range(0,len(self.Job_list))
+        self.Jobs_dict = dict(zip(self.Jobs_numlist,self.Job_list))
+
+    def tip(self):
+        Job_num = 0
+        print("请输入要操作的内容 [默认 0]")
+        for key,value in self.Jobs_dict.items():
+           print("{0}:{1}".format(key,value))
+        Job_num = int(input())
+        return Job_num
+# Start Process
+Job_list = ["BEMF","KK","AA"]
+Job_num = Jobs(Job_list).tip()
+
+print("Trying to operate: %s"%Job_list[Job_num])
 filename , group = T_input().BEMF_input()
-#filename = "M21P3-s-19nbli- A01-006-190322$BEMF.tdms"
-#group = "Instantly Data"
 listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage","V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
 listforposition = ["E","F","G","H"]
 Excel_filename = "测试表格2小时.XLSX"
