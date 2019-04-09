@@ -14,9 +14,7 @@ class TDMS():# read TDMS files and dict it.
 
         for name in self.listforname:
             Data_List.append(tdmsfile.object(self.group,name).data)
-       # print(list(zip(self.listforname,Data_List)))
         Dict_temp = dict(list(zip(self.listforname,Data_List)))
-     #   print(Dict_temp)
         return Dict_temp
 
 
@@ -31,7 +29,6 @@ class Excel():  # read and write the xlsx and process.
 
     def WriteBEMF(self):
         current_sheet = self.wb[self.sheetname]
-
         for v in Dict_temp["MB_Command.Speed"]:
             speed_range = [1000,2000,3000,4000]
             try:
@@ -60,33 +57,38 @@ class Excel():  # read and write the xlsx and process.
         value = current_sheet[single_pos]
         return value
 
-    def WriteConti(self):
+    def WriteConti_value(self):
         i = 0
-        Speed = self.Read_One_Value("G6")
-        for s in self.Dict_temp["MB_Command.Speed"]:
-            if s == Speed:
-                position = self.listforposition[0]+"36"
+        for speed in self.Dict_temp["MB_Command.Speed"]:
+            if speed == self.Conti_Speed:
+                position = self.listforposition[self.j]+"36"
                 current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Voltage"][i]
-                position = self.listforposition[0]+"37"
+                position = self.listforposition[self.j]+"37"
                 current_sheet[position] = self.Dict_temp["SUM/AVG-F.Voltage"][i]
-                position = self.listforposition[0]+"38"
+                position = self.listforposition[self.j]+"38"
                 current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Current"][i]
-                position = self.listforposition[0]+"39"
+                position = self.listforposition[self.j]+"39"
                 current_sheet[position] = self.Dict_temp["SUM/AVG-F.Current"][i]
-                position = self.listforposition[0]+"40"
+                position = self.listforposition[self.j]+"40"
                 current_sheet[position] = self.Dict_temp["SUM/AVG-Kwatts"][i]
-                position = self.listforposition[0]+"41"
+                position = self.listforposition[self.j]+"41"
                 current_sheet[position] = self.Dict_temp["SUM/AVG-F.Kwatts"][i]
-                position = self.listforposition[0]+"42"
+                position = self.listforposition[self.j]+"42"
                 current_sheet[position] = self.Dict_temp["SUM/AVG-PF"][i]
-                position = self.listforposition[0]+"43"
+                position = self.listforposition[self.j]+"43"
                 current_sheet[position] = self.Dict_temp["SUM/AVG-F.PF"][i]
+                print("已找到转速为%s,第%s个数列"%(s,i+1))
+                i = i + 1
+        if i == 0:
+            print("没有找到转速为%s的数据"%s)
 
+    def WriteConti(self):
+        listforNum = range(len(self.listforposition))
+        SpeedPositionList = [ x + "6" for x in self.listforposition]
+        for self.j,Speed_pos in zip(listforNum,SpeedPositionList):
+            self.Conti_Speed = self.Read_One_Value(Speed_pos)
+            self.WriteConti_value()
 
-                print("已找到%s,%s"%(s,i))
-            else:
-                pass
-            i = i + 1
 
 
 class T_input():# input value set
@@ -129,7 +131,7 @@ class Jobs():
 
     def Select(self):
         Job_num = 0
-        print("请输入要操作的内容 [默认 0]")
+        print("请输入要操作的内容:[默认 0]")
         for key,value in self.Jobs_dict.items():
            print("{0}:{1}".format(key,value))
         Job_num = int(input())
@@ -143,7 +145,8 @@ if Job_list[Job_num] == "BEMF":
     filename, group = T_input().Data_input()
     Excel_filename = "测试表格2小时.XLSX"
     sheetname = "2.Motor BEMF"
-    listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage","V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
+    listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage",\
+    "V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
     listforposition = ["E","F","G","H"]
     Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
     Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
@@ -152,12 +155,13 @@ elif Job_list[Job_num] == "Continue Torque":
     #直流电流未添加，待处理
     Excel_filename = "测试表格2小时.XLSX"
     sheetname = "4.Cont.Torque Curve"
-    listforname =["MB_Command.Speed","MA_Command.Torque","Sensor-Torque","SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current","SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF"]
+    listforname =["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
+    "SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current",\
+    "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF"] 
     listforposition["G","I"]
     Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-    Excel(Dict_temp,Excel_filename,sheetname,listforposition)
+    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteConti()
 
 else:
     pass
-
 
