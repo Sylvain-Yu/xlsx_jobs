@@ -19,6 +19,8 @@ class TDMS():# read TDMS files and dict it.
      #   print(Dict_temp)
         return Dict_temp
 
+
+
 class Excel():  # read and write the xlsx and process.
     def __init__(self,Dict_temp,filename,sheetname,listforposition):
         self.Dict_temp = Dict_temp
@@ -53,10 +55,42 @@ class Excel():  # read and write the xlsx and process.
         self.wb.save(Excel_filename)
         print(status)
 
+    def Read_One_Value(self,single_pos):
+        current_sheet = self.wb[self.sheetname]
+        value = current_sheet[single_pos]
+        return value
+
+    def WriteConti(self):
+        i = 0
+        Speed = self.Read_One_Value("G6")
+        for s in self.Dict_temp["MB_Command.Speed"]:
+            if s == Speed:
+                position = self.listforposition[0]+"36"
+                current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Voltage"][i]
+                position = self.listforposition[0]+"37"
+                current_sheet[position] = self.Dict_temp["SUM/AVG-F.Voltage"][i]
+                position = self.listforposition[0]+"38"
+                current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Current"][i]
+                position = self.listforposition[0]+"39"
+                current_sheet[position] = self.Dict_temp["SUM/AVG-F.Current"][i]
+                position = self.listforposition[0]+"40"
+                current_sheet[position] = self.Dict_temp["SUM/AVG-Kwatts"][i]
+                position = self.listforposition[0]+"41"
+                current_sheet[position] = self.Dict_temp["SUM/AVG-F.Kwatts"][i]
+                position = self.listforposition[0]+"42"
+                current_sheet[position] = self.Dict_temp["SUM/AVG-PF"][i]
+                position = self.listforposition[0]+"43"
+                current_sheet[position] = self.Dict_temp["SUM/AVG-F.PF"][i]
+
+
+                print("已找到%s,%s"%(s,i))
+            else:
+                pass
+            i = i + 1
 
 
 class T_input():# input value set
-    def BEMF_input(self):
+    def Data_input(self):
         dir_list = os.listdir(".")
         listforTDMS = []
         for f in dir_list:
@@ -65,27 +99,27 @@ class T_input():# input value set
         len_listforTDMS = len(listforTDMS)
         num = range(0,len_listforTDMS)
         file_name_dict =dict(zip(num,listforTDMS))
-
+        print("以下为本文件夹内可操作文件：")
         for key, value in file_name_dict.items():
             print("{0}:{1}".format(key,value))
-        
+
         while True:
-            filename_num = input("please choose the Num for Source BEMF file(.tdms)!\n")
+            filename_num = input("请选择tdms格式的源文件件\n")
             filename_num = int(filename_num)
 
             if filename_num >= 0 and filename_num < len_listforTDMS:
                 filename = file_name_dict[filename_num]
                 break
             else:
-                print("you should choose 0~ %d"%(len_listforTDMS-1))
+                print("请输入 0~ %d"%(len_listforTDMS-1))
 
-        choice = input("please choose the group[1/2]:\n1.Instantly Data(default) 2.Meta Data\n")
-        if int(choice.strip()) != 2:
+        choice = input("请选择需要进行数据处理的组[1/2]:\n0.Instantly Data(默认) 1.Meta Data\n")
+        if int(choice.strip()) != 0:
             group = "Instantly Data"
         else:
             group ="Meta Data"
-
         return (filename,group)
+
 
 class Jobs():
     def __init__(self,Job_list):
@@ -93,7 +127,7 @@ class Jobs():
         self.Jobs_numlist = range(0,len(self.Job_list))
         self.Jobs_dict = dict(zip(self.Jobs_numlist,self.Job_list))
 
-    def tip(self):
+    def Select(self):
         Job_num = 0
         print("请输入要操作的内容 [默认 0]")
         for key,value in self.Jobs_dict.items():
@@ -101,14 +135,29 @@ class Jobs():
         Job_num = int(input())
         return Job_num
 # Start Process
-Job_list = ["BEMF","KK","AA"]
-Job_num = Jobs(Job_list).tip()
+Job_list = ["BEMF","Continue Torque","AA"]
+Job_num = Jobs(Job_list).Select()
+print("正在尝试操作: %s ..."%Job_list[Job_num])
 
-print("Trying to operate: %s"%Job_list[Job_num])
-filename , group = T_input().BEMF_input()
-listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage","V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
-listforposition = ["E","F","G","H"]
-Excel_filename = "测试表格2小时.XLSX"
-sheetname = "2.Motor BEMF"
-Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
+if Job_list[Job_num] == "BEMF":
+    filename, group = T_input().Data_input()
+    Excel_filename = "测试表格2小时.XLSX"
+    sheetname = "2.Motor BEMF"
+    listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage","V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
+    listforposition = ["E","F","G","H"]
+    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
+elif Job_list[Job_num] == "Continue Torque":
+    filename, group = T_input().Data_input()
+    #直流电流未添加，待处理
+    Excel_filename = "测试表格2小时.XLSX"
+    sheetname = "4.Cont.Torque Curve"
+    listforname =["MB_Command.Speed","MA_Command.Torque","Sensor-Torque","SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current","SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF"]
+    listforposition["G","I"]
+    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+    Excel(Dict_temp,Excel_filename,sheetname,listforposition)
+
+else:
+    pass
+
+
