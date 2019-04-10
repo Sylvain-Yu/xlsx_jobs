@@ -34,7 +34,7 @@ class Excel():  # read and write the xlsx and process.
             try:
                 i = speed_range.index(v)
             except ValueError:
-                status = "BEMF file Write Failed !"
+                status = "BEMF 数据处理失败 !"
             else:
                 position = self.listforposition[i]+"14"
                 current_sheet[position] = self.Dict_temp["U-RMS.Voltage"][i]
@@ -48,8 +48,8 @@ class Excel():  # read and write the xlsx and process.
                 current_sheet[position] = self.Dict_temp["V-F.Voltage"][i]
                 position = self.listforposition[i]+"22"
                 current_sheet[position] = self.Dict_temp["W-F.Voltage"][i]
-                status = "BEMF file Write successful !"
-        self.wb.save(Excel_filename)
+                status = "BEMF 数据处理完成 !"
+        self.wb.save(self.filename)
         print(status)
 
     def Read_One_Value(self,single_pos):
@@ -59,6 +59,8 @@ class Excel():  # read and write the xlsx and process.
 
     def WriteConti_value(self):
         i = 0
+        current_sheet = self.wb[self.sheetname]
+        print(self.Dict_temp["MB_Command.Speed"])
         for speed in self.Dict_temp["MB_Command.Speed"]:
             if speed == self.Conti_Speed:
                 position = self.listforposition[self.j]+"36"
@@ -77,10 +79,19 @@ class Excel():  # read and write the xlsx and process.
                 current_sheet[position] = self.Dict_temp["SUM/AVG-PF"][i]
                 position = self.listforposition[self.j]+"43"
                 current_sheet[position] = self.Dict_temp["SUM/AVG-F.PF"][i]
-                print("已找到转速为%s,第%s个数列"%(s,i+1))
+                position = self.listforposition[self.j]+"26"
+                current_sheet[position] = self.Dict_temp["MA_Command.Torque"][i]
+                position = self.listforposition[self.j]+"27"
+                current_sheet[position] = self.Dict_temp["Sensor-Torque"][i]
+                position = self.listforposition[self.j]+"33"
+                current_sheet[position] = self.Dict_temp["DC Current"][i]
+                print("已找到转速为%s,第%s个数列"%(speed,i+1))
                 i = i + 1
         if i == 0:
-            print("没有找到转速为%s的数据"%s)
+            print("没有找到转速为%s的数据"%speed)
+        else:
+            self.wb.save(self.filename)
+            print("完成数据处理")
 
     def WriteConti(self):
         listforNum = range(len(self.listforposition))
@@ -89,7 +100,31 @@ class Excel():  # read and write the xlsx and process.
             self.Conti_Speed = self.Read_One_Value(Speed_pos)
             self.WriteConti_value()
 
-
+    def WriteHighSpeed(self):
+        point = 6
+        current_sheet = self.wb[self.sheetname]
+        i = 0
+        zipped_list = list(zip(self.Dict_temp["MA-RTD 1"],self.Dict_temp["MA-RTD 2"]))
+#        print(zipped_list)
+        for RTD1 ,RTD2 in zipped_list:
+            if RTD1 > 55 or RTD2 > 55:
+                break
+            else:
+                i = i + 1
+        k = i + 300
+        current_sheet["F20"] = zipped_list[k][0]
+        current_sheet["G20"] = zipped_list[k][1]
+        current_sheet["F14"] = zipped_list[i][0]
+        current_sheet["G14"] = zipped_list[i][0]
+        while i < len(self.Dict_temp["MA-RTD 1"]):
+            pos1 = self.listforposition[0] + str(point)
+            pos2 = self.listforposition[1] + str(point)
+            current_sheet[pos1] = zipped_list[i][0]
+            current_sheet[pos2] = zipped_list[i][1]
+            point = point + 1
+            i = i + 1
+        print("已处理完高转速试验数据")
+        self.wb.save(self.filename)
 
 class T_input():# input value set
     def Data_input(self):
@@ -115,8 +150,8 @@ class T_input():# input value set
             else:
                 print("请输入 0~ %d"%(len_listforTDMS-1))
 
-        choice = input("请选择需要进行数据处理的组[1/2]:\n0.Instantly Data(默认) 1.Meta Data\n")
-        if int(choice.strip()) != 0:
+        choice = input("请选择需要进行数据处理的组[0/1]:\n0.Instantly Data(默认) 1.Meta Data\n")
+        if int(choice.strip()) == 0:
             group = "Instantly Data"
         else:
             group ="Meta Data"
@@ -136,8 +171,10 @@ class Jobs():
            print("{0}:{1}".format(key,value))
         Job_num = int(input())
         return Job_num
+
+
 # Start Process
-Job_list = ["BEMF","Continue Torque","AA"]
+Job_list = ["BEMF","Continue Torque","High Speed"]
 Job_num = Jobs(Job_list).Select()
 print("正在尝试操作: %s ..."%Job_list[Job_num])
 
@@ -152,16 +189,21 @@ if Job_list[Job_num] == "BEMF":
     Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
 elif Job_list[Job_num] == "Continue Torque":
     filename, group = T_input().Data_input()
-    #直流电流未添加，待处理
     Excel_filename = "测试表格2小时.XLSX"
-    sheetname = "4.Cont.Torque Curve"
-    listforname =["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
+    sheetname = "4. Cont. Torque Curve"
+    listforname = ["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
     "SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current",\
-    "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF"] 
-    listforposition["G","I"]
+    "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF","DC Current"] 
+    listforposition = ["G","I","K"]
     Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
     Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteConti()
-
+elif Job_list[Job_num] == "High Speed":
+    filename, group = T_input().Data_input()
+    Excel_filename =  "测试表格2小时.XLSX"
+    sheetname = "5. High Speed"
+    listforname = ["MA-RTD 1","MA-RTD 2"]
+    listforposition = ["J","K"]
+    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed()
 else:
     pass
-
