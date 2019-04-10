@@ -11,13 +11,10 @@ class TDMS():# read TDMS files and dict it.
     def Read_Tdms(self):
         Data_List = []
         tdmsfile = TdmsFile(self.filename)
-
         for name in self.listforname:
             Data_List.append(tdmsfile.object(self.group,name).data)
         Dict_temp = dict(list(zip(self.listforname,Data_List)))
         return Dict_temp
-
-
 
 class Excel():  # read and write the xlsx and process.
     def __init__(self,Dict_temp,filename,sheetname,listforposition):
@@ -105,7 +102,6 @@ class Excel():  # read and write the xlsx and process.
         current_sheet = self.wb[self.sheetname]
         i = 0
         zipped_list = list(zip(self.Dict_temp["MA-RTD 1"],self.Dict_temp["MA-RTD 2"]))
-#        print(zipped_list)
         for RTD1 ,RTD2 in zipped_list:
             if RTD1 > 55 or RTD2 > 55:
                 break
@@ -126,8 +122,27 @@ class Excel():  # read and write the xlsx and process.
         print("已处理完高转速试验数据")
         self.wb.save(self.filename)
 
-class T_input():# input value set
-    def Data_input(self):
+class DataPath():# input value set
+	def file_path_set():
+		path_dict = {0:".",1:"D:"}
+		print(path_dict)
+		i = 0
+		path = ""
+		while True:
+			try:
+				path_num = int(input("请选择操作的路径").strip())
+				path = path + path_dict[path_num] +"/"
+	#			print(path)
+				path_ex = os.listdir(path)
+				path_dict = dict(zip(range(len(path_ex)),path_ex))
+				print(path_dict)
+				i = i + 1
+			except NotADirectoryError:
+				file_name_path = path + path_dict[path_num]
+				break
+		return file_name_path
+
+    def data_get(self):
         dir_list = os.listdir(".")
         listforTDMS = []
         for f in dir_list:
@@ -139,24 +154,20 @@ class T_input():# input value set
         print("以下为本文件夹内可操作文件：")
         for key, value in file_name_dict.items():
             print("{0}:{1}".format(key,value))
-
         while True:
             filename_num = input("请选择tdms格式的源文件件\n")
             filename_num = int(filename_num)
-
             if filename_num >= 0 and filename_num < len_listforTDMS:
                 filename = file_name_dict[filename_num]
                 break
             else:
                 print("请输入 0~ %d"%(len_listforTDMS-1))
-
         choice = input("请选择需要进行数据处理的组[0/1]:\n0.Instantly Data(默认) 1.Meta Data\n")
         if int(choice.strip()) == 0:
             group = "Instantly Data"
         else:
             group ="Meta Data"
         return (filename,group)
-
 
 class Jobs():
     def __init__(self,Job_list):
@@ -174,36 +185,36 @@ class Jobs():
 
 
 # Start Process
-Job_list = ["BEMF","Continue Torque","High Speed"]
-Job_num = Jobs(Job_list).Select()
-print("正在尝试操作: %s ..."%Job_list[Job_num])
 
-if Job_list[Job_num] == "BEMF":
-    filename, group = T_input().Data_input()
-    Excel_filename = "测试表格2小时.XLSX"
-    sheetname = "2.Motor BEMF"
-    listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage",\
-    "V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
-    listforposition = ["E","F","G","H"]
-    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
-elif Job_list[Job_num] == "Continue Torque":
-    filename, group = T_input().Data_input()
-    Excel_filename = "测试表格2小时.XLSX"
-    sheetname = "4. Cont. Torque Curve"
-    listforname = ["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
-    "SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current",\
-    "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF","DC Current"] 
-    listforposition = ["G","I","K"]
-    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteConti()
-elif Job_list[Job_num] == "High Speed":
-    filename, group = T_input().Data_input()
-    Excel_filename =  "测试表格2小时.XLSX"
-    sheetname = "5. High Speed"
-    listforname = ["MA-RTD 1","MA-RTD 2"]
-    listforposition = ["J","K"]
-    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed()
-else:
-    pass
+Excel_filename = DataPath().file_path_set()
+Job_list = ["退出","BEMF","Continue Torque","High Speed"]
+while True:
+	Job_num = Jobs(Job_list).Select()
+	print("正在尝试操作: %s ..."%Job_list[Job_num])
+	if Job_list[Job_num] == "BEMF":
+	    filename, group = DataPath().data_get()
+	    sheetname = "2.Motor BEMF"
+	    listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage",\
+	    "V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
+	    listforposition = ["E","F","G","H"]
+	    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+	    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
+	elif Job_list[Job_num] == "Continue Torque":
+	    filename, group = DataPath().data_get()
+	    sheetname = "4. Cont. Torque Curve"
+	    listforname = ["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
+	    "SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current",\
+	    "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF","DC Current"] 
+	    listforposition = ["G","I","K"]
+	    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+	    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteConti()
+	elif Job_list[Job_num] == "High Speed":
+	    filename, group = DataPath().data_get()
+	    sheetname = "5. High Speed"
+	    listforname = ["MA-RTD 1","MA-RTD 2"]
+	    listforposition = ["J","K"]
+	    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+	    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed()
+	else:
+	    break
+	    print("关闭中 ...")
