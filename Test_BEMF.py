@@ -23,7 +23,6 @@ class Excel():  # read and write the xlsx and process.
         self.sheetname = sheetname
         self.listforposition = listforposition
         self.wb = load_workbook(self.filename)
-
     def WriteBEMF(self):
         current_sheet = self.wb[self.sheetname]
         for v in Dict_temp["MB_Command.Speed"]:
@@ -31,7 +30,7 @@ class Excel():  # read and write the xlsx and process.
             try:
                 i = speed_range.index(v)
             except ValueError:
-                status = "BEMF 数据处理失败 !"
+                status = "BEMF 数据处理失败 !\n"
             else:
                 position = self.listforposition[i]+"14"
                 current_sheet[position] = self.Dict_temp["U-RMS.Voltage"][i]
@@ -45,7 +44,7 @@ class Excel():  # read and write the xlsx and process.
                 current_sheet[position] = self.Dict_temp["V-F.Voltage"][i]
                 position = self.listforposition[i]+"22"
                 current_sheet[position] = self.Dict_temp["W-F.Voltage"][i]
-                status = "BEMF 数据处理完成 !"
+                status = "BEMF 数据处理完成 !\n"
         self.wb.save(self.filename)
         print(status)
 
@@ -85,10 +84,10 @@ class Excel():  # read and write the xlsx and process.
                 print("已找到转速为%s,第%s个数列"%(speed,i+1))
                 i = i + 1
         if i == 0:
-            print("没有找到转速为%s的数据"%speed)
+            print("没有找到转速为%s的数据\n"%speed)
         else:
             self.wb.save(self.filename)
-            print("完成数据处理")
+            print("完成数据处理\n")
 
     def WriteConti(self):
         listforNum = range(len(self.listforposition))
@@ -119,28 +118,27 @@ class Excel():  # read and write the xlsx and process.
             current_sheet[pos2] = zipped_list[i][1]
             point = point + 1
             i = i + 1
-        print("已处理完高转速试验数据")
+        print("已处理完高转速试验数据\n")
         self.wb.save(self.filename)
 
 class DataPath():# input value set
-	def file_path_set():
-		path_dict = {0:".",1:"D:"}
-		print(path_dict)
-		i = 0
-		path = ""
-		while True:
-			try:
-				path_num = int(input("请选择操作的路径").strip())
-				path = path + path_dict[path_num] +"/"
-	#			print(path)
-				path_ex = os.listdir(path)
-				path_dict = dict(zip(range(len(path_ex)),path_ex))
-				print(path_dict)
-				i = i + 1
-			except NotADirectoryError:
-				file_name_path = path + path_dict[path_num]
-				break
-		return file_name_path
+    def file_path_set(self):
+        path_dict = {0:".",1:"D:"}
+        print(path_dict)
+        i = 0
+        path = ""
+        while True:
+            try:
+                path_num = int(input("请选择操作的路径\n").strip())
+                path = path + path_dict[path_num] +"/"
+                path_ex = os.listdir(path)
+                path_dict = dict(zip(range(len(path_ex)),path_ex))
+                print(path_dict)
+                i = i + 1
+            except NotADirectoryError:
+                file_name_path = path[0:-1]
+                break
+        return file_name_path
 
     def data_get(self):
         dir_list = os.listdir(".")
@@ -189,32 +187,36 @@ class Jobs():
 Excel_filename = DataPath().file_path_set()
 Job_list = ["退出","BEMF","Continue Torque","High Speed"]
 while True:
-	Job_num = Jobs(Job_list).Select()
-	print("正在尝试操作: %s ..."%Job_list[Job_num])
-	if Job_list[Job_num] == "BEMF":
-	    filename, group = DataPath().data_get()
-	    sheetname = "2.Motor BEMF"
-	    listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage",\
-	    "V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
-	    listforposition = ["E","F","G","H"]
-	    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-	    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
-	elif Job_list[Job_num] == "Continue Torque":
-	    filename, group = DataPath().data_get()
-	    sheetname = "4. Cont. Torque Curve"
-	    listforname = ["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
-	    "SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current",\
-	    "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF","DC Current"] 
-	    listforposition = ["G","I","K"]
-	    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-	    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteConti()
-	elif Job_list[Job_num] == "High Speed":
-	    filename, group = DataPath().data_get()
-	    sheetname = "5. High Speed"
-	    listforname = ["MA-RTD 1","MA-RTD 2"]
-	    listforposition = ["J","K"]
-	    Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-	    Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed()
-	else:
-	    break
-	    print("关闭中 ...")
+    try:
+        Job_num = Jobs(Job_list).Select()
+        print("正在尝试操作: %s ..."%Job_list[Job_num])
+        if Job_list[Job_num] == "BEMF":
+            filename, group = DataPath().data_get()
+            sheetname = "2.Motor BEMF"
+            listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage",\
+            "V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
+            listforposition = ["E","F","G","H"]
+            Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+            Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
+        elif Job_list[Job_num] == "Continue Torque":
+            filename, group = DataPath().data_get()
+            sheetname = "4. Cont. Torque Curve"
+            listforname = ["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
+            "SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current",\
+            "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF","DC Current"] 
+            listforposition = ["G","I","K"]
+            Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+            Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteConti()
+        elif Job_list[Job_num] == "High Speed":
+            filename, group = DataPath().data_get()
+            sheetname = "5. High Speed"
+            listforname = ["MA-RTD 1","MA-RTD 2"]
+            listforposition = ["J","K"]
+            Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+            Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed()
+        else:
+            print("关闭中 ...")
+            break
+    except PermissionError:
+        print("数据处理失败，请先关闭需要操作的文件\n\
+..............................................\n")
