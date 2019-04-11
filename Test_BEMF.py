@@ -39,11 +39,11 @@ class Excel():  # read and write the xlsx and process.
                 position = self.listforposition[i]+"16"
                 current_sheet[position] = self.Dict_temp["W-RMS.Voltage"][i]
                 position = self.listforposition[i]+"20"
-                current_sheet[position] = self.Dict_temp["U-F.Voltage"][i]
+                current_sheet[position] = self.Dict_temp["U-PP.RMS.Voltage"][i]
                 position = self.listforposition[i]+"21"
-                current_sheet[position] = self.Dict_temp["V-F.Voltage"][i]
+                current_sheet[position] = self.Dict_temp["V-PP.RMS.Voltage"][i]
                 position = self.listforposition[i]+"22"
-                current_sheet[position] = self.Dict_temp["W-F.Voltage"][i]
+                current_sheet[position] = self.Dict_temp["W-PP.RMS.Voltage"][i]
                 status = "BEMF 数据处理完成 !\n"
         self.wb.save(self.filename)
         print(status)
@@ -123,22 +123,24 @@ class Excel():  # read and write the xlsx and process.
 
 class DataPath():# input value set
     def file_path_set(self):
-        path_dict = {0:".",1:"D:"}
-        print(path_dict)
-        i = 0
-        path = ""
+        file_path = os.listdir(".")
+        Excel_path_list = []
+        for Excel in file_path:
+            if ".xlsx" in Excel.lower():
+                Excel_path_list.append(Excel)
+        num = range(0,len(Excel_path_list))
+        file_dict = dict(zip(num,Excel_path_list))
+        for Key, Value in file_dict:
+            print("{0}:{1}".format(Key,Value))
         while True:
-            try:
-                path_num = int(input("请选择操作的路径\n").strip())
-                path = path + path_dict[path_num] +"/"
-                path_ex = os.listdir(path)
-                path_dict = dict(zip(range(len(path_ex)),path_ex))
-                print(path_dict)
-                i = i + 1
-            except NotADirectoryError:
-                file_name_path = path[0:-1]
+            filename_num = input("请选择需要操作的Excel\n")
+            filename_num = int(filename.strip())
+            if filename_num >= 0 and filename_num < len(Excel_path_list):
+                filename = file_dict[filename_num]
                 break
-        return file_name_path
+            else:
+                print("请输入 0~%d"%(len(Excel_path_list)-1))
+        return filename
 
     def data_get(self):
         dir_list = os.listdir(".")
@@ -194,7 +196,7 @@ while True:
             filename, group = DataPath().data_get()
             sheetname = "2.Motor BEMF"
             listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage",\
-            "V-RMS.Voltage","W-RMS.Voltage","U-F.Voltage","V-F.Voltage","W-F.Voltage"]
+            "V-RMS.Voltage","W-RMS.Voltage","U-PP.RMS.Voltage","V-PP.RMS.Voltage","W-PP.RMS.Voltage"]
             listforposition = ["E","F","G","H"]
             Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
             Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
