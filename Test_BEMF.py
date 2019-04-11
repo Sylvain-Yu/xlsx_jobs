@@ -53,6 +53,7 @@ class Excel():  # read and write the xlsx and process.
         value = current_sheet[single_pos]
         return value
 
+#仅写入耐久的数据
     def WriteConti_value(self):
         i = 0
         current_sheet = self.wb[self.sheetname]
@@ -89,6 +90,7 @@ class Excel():  # read and write the xlsx and process.
             self.wb.save(self.filename)
             print("完成数据处理\n")
 
+# 连续扭矩试验处理数据，属于源为Instantly
     def WriteConti(self):
         listforNum = range(len(self.listforposition))
         SpeedPositionList = [ x + "6" for x in self.listforposition]
@@ -96,6 +98,7 @@ class Excel():  # read and write the xlsx and process.
             self.Conti_Speed = self.Read_One_Value(Speed_pos)
             self.WriteConti_value()
 
+# 为高转速试验处理数据
     def WriteHighSpeed(self):
         point = 6
         current_sheet = self.wb[self.sheetname]
@@ -130,7 +133,7 @@ class DataPath():# input value set
                 Excel_path_list.append(Excel)
         num = range(0,len(Excel_path_list))
         file_dict = dict(zip(num,Excel_path_list))
-        for Key, Value in file_dict:
+        for Key, Value in file_dict.items():
             print("{0}:{1}".format(Key,Value))
         while True:
             filename_num = input("请选择需要操作的Excel\n")
