@@ -2,7 +2,7 @@
 ## Module:
 1. npTDMS
 2. openpyxl
-***
+
 ## Function brief Summary
 1. Write Specif BEMF worksheet
 2. Write Specif Conti Torque Worksheet
