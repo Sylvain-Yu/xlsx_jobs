@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+# -*- coding:UTF-8 -*-
 import os
 from openpyxl import load_workbook
 from nptdms import TdmsFile
@@ -23,8 +25,9 @@ class Excel():  # read and write the xlsx and process.
         self.sheetname = sheetname
         self.listforposition = listforposition
         self.wb = load_workbook(self.filename)
+        self.current_sheet = self.wb[self.sheetname]
+
     def WriteBEMF(self):
-        current_sheet = self.wb[self.sheetname]
         for v in Dict_temp["MB_Command.Speed"]:
             speed_range = [1000,2000,3000,4000]
             try:
@@ -33,57 +36,55 @@ class Excel():  # read and write the xlsx and process.
                 status = "BEMF 数据处理失败 !\n"
             else:
                 position = self.listforposition[i]+"14"
-                current_sheet[position] = self.Dict_temp["U-RMS.Voltage"][i]
+                self.current_sheet[position] = self.Dict_temp["U-RMS.Voltage"][i]
                 position = self.listforposition[i]+"15"
-                current_sheet[position] = self.Dict_temp["V-RMS.Voltage"][i]
+                self.current_sheet[position] = self.Dict_temp["V-RMS.Voltage"][i]
                 position = self.listforposition[i]+"16"
-                current_sheet[position] = self.Dict_temp["W-RMS.Voltage"][i]
+                self.current_sheet[position] = self.Dict_temp["W-RMS.Voltage"][i]
                 position = self.listforposition[i]+"20"
-                current_sheet[position] = self.Dict_temp["U-PP.RMS.Voltage"][i]
+                self.current_sheet[position] = self.Dict_temp["U-PP.RMS.Voltage"][i]
                 position = self.listforposition[i]+"21"
-                current_sheet[position] = self.Dict_temp["V-PP.RMS.Voltage"][i]
+                self.current_sheet[position] = self.Dict_temp["V-PP.RMS.Voltage"][i]
                 position = self.listforposition[i]+"22"
-                current_sheet[position] = self.Dict_temp["W-PP.RMS.Voltage"][i]
+                self.current_sheet[position] = self.Dict_temp["W-PP.RMS.Voltage"][i]
                 status = "BEMF 数据处理完成 !\n"
         self.wb.save(self.filename)
         print(status)
 
     def Read_One_Value(self,single_pos):
-        current_sheet = self.wb[self.sheetname]
-        value = current_sheet[single_pos]
+        value = self.current_sheet[single_pos]
         return value
 
 #仅写入耐久的数据
     def WriteConti_value(self):
         i = 0
-        current_sheet = self.wb[self.sheetname]
         print(self.Dict_temp["MB_Command.Speed"])
         for speed in self.Dict_temp["MB_Command.Speed"]:
             if speed == self.Conti_Speed:
                 position = self.listforposition[self.j]+"36"
-                current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Voltage"][i]
+                self.current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Voltage"][i]
                 position = self.listforposition[self.j]+"37"
-                current_sheet[position] = self.Dict_temp["SUM/AVG-F.Voltage"][i]
+                self.current_sheet[position] = self.Dict_temp["SUM/AVG-F.Voltage"][i]
                 position = self.listforposition[self.j]+"38"
-                current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Current"][i]
+                self.current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Current"][i]
                 position = self.listforposition[self.j]+"39"
-                current_sheet[position] = self.Dict_temp["SUM/AVG-F.Current"][i]
+                self.current_sheet[position] = self.Dict_temp["SUM/AVG-F.Current"][i]
                 position = self.listforposition[self.j]+"40"
-                current_sheet[position] = self.Dict_temp["SUM/AVG-Kwatts"][i]
+                self.current_sheet[position] = self.Dict_temp["SUM/AVG-Kwatts"][i]
                 position = self.listforposition[self.j]+"41"
-                current_sheet[position] = self.Dict_temp["SUM/AVG-F.Kwatts"][i]
+                self.current_sheet[position] = self.Dict_temp["SUM/AVG-F.Kwatts"][i]
                 position = self.listforposition[self.j]+"42"
-                current_sheet[position] = self.Dict_temp["SUM/AVG-PF"][i]
+                self.current_sheet[position] = self.Dict_temp["SUM/AVG-PF"][i]
                 position = self.listforposition[self.j]+"43"
-                current_sheet[position] = self.Dict_temp["SUM/AVG-F.PF"][i]
+                self.current_sheet[position] = self.Dict_temp["SUM/AVG-F.PF"][i]
                 position = self.listforposition[self.j]+"26"
-                current_sheet[position] = self.Dict_temp["MA_Command.Torque"][i]
+                self.current_sheet[position] = self.Dict_temp["MA_Command.Torque"][i]
                 position = self.listforposition[self.j]+"27"
-                current_sheet[position] = self.Dict_temp["Sensor-Torque"][i]
+                self.current_sheet[position] = self.Dict_temp["Sensor-Torque"][i]
                 position = self.listforposition[self.j]+"33"
-                current_sheet[position] = self.Dict_temp["DC Current"][i]
+                self.current_sheet[position] = self.Dict_temp["DC Current"][i]
                 print("已找到转速为%s,第%s个数列"%(speed,i+1))
-                i = i + 1
+                i += 1
         if i == 0:
             print("没有找到转速为%s的数据\n"%speed)
         else:
@@ -101,27 +102,46 @@ class Excel():  # read and write the xlsx and process.
 # 为高转速试验处理数据
     def WriteHighSpeed(self):
         point = 6
-        current_sheet = self.wb[self.sheetname]
         i = 0
         zipped_list = list(zip(self.Dict_temp["MA-RTD 1"],self.Dict_temp["MA-RTD 2"]))
         for RTD1 ,RTD2 in zipped_list:
             if RTD1 > 55 or RTD2 > 55:
                 break
             else:
-                i = i + 1
+                i += 1
         k = i + 300
-        current_sheet["F20"] = zipped_list[k][0]
-        current_sheet["G20"] = zipped_list[k][1]
-        current_sheet["F14"] = zipped_list[i][0]
-        current_sheet["G14"] = zipped_list[i][0]
+        self.current_sheet["F20"] = zipped_list[k][0]
+        self.current_sheet["G20"] = zipped_list[k][1]
+        self.current_sheet["F14"] = zipped_list[i][0]
+        self.current_sheet["G14"] = zipped_list[i][0]
         while i < len(self.Dict_temp["MA-RTD 1"]):
             pos1 = self.listforposition[0] + str(point)
             pos2 = self.listforposition[1] + str(point)
-            current_sheet[pos1] = zipped_list[i][0]
-            current_sheet[pos2] = zipped_list[i][1]
-            point = point + 1
-            i = i + 1
+            self.current_sheet[pos1] = zipped_list[i][0]
+            self.current_sheet[pos2] = zipped_list[i][1]
+            point += 1
+            i += 1
         print("已处理完高转速试验数据\n")
+        self.wb.save(self.filename)
+
+    def WriteWinding(self): #unfinished
+        point = 10
+        i = 0
+        zipped_list = list(zip(self.Dict_temp["MA-RTD 1"],self.Dict_temp["MA-RTD 2"]))
+        while i < 8*60:
+            pos1 = self.listforposition[0] + str(point)
+            pos2 = self.listforposition[1] + str(point)
+            self.current_sheet[pos1] = zipped_list[i][0]
+            self.current_sheet[pos2] = zipped_list[i][1]
+            point += 1 
+            i += 1
+        self.current_sheet["E20"] = zipped_list[0][0] #winding temp at start point:RTD 1
+        self.current_sheet["G20"] = zipped_list[0][1] #winding temp at start point:RTD 2
+        self.current_sheet["E21"] = zipped_list[480][0] #winding temp at 8 min:RTD 1
+        self.current_sheet["G21"] = zipped_list[480][1] #winding temp at 8 min:RTD 2
+ #       self.current_sheet["E16"] =  # Torque Command at start point
+ #       self.current_sheet["G16"] =  # Torque Command at end ponts
+        print("已处理完成温升试验数据\n")
         self.wb.save(self.filename)
 
 class DataPath():# input value set
@@ -190,7 +210,7 @@ class Jobs():
 # Start Process
 
 Excel_filename = DataPath().file_path_set()
-Job_list = ["退出","BEMF","Continue Torque","High Speed"]
+Job_list = ["退出","BEMF","Continue Torque","High Speed","Winding Heating"]
 while True:
     try:
         Job_num = Jobs(Job_list).Select()
@@ -199,7 +219,8 @@ while True:
             filename, group = DataPath().data_get()
             sheetname = "2.Motor BEMF"
             listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage",\
-            "V-RMS.Voltage","W-RMS.Voltage","U-PP.RMS.Voltage","V-PP.RMS.Voltage","W-PP.RMS.Voltage"]
+            "V-RMS.Voltage","W-RMS.Voltage","U-PP.RMS.Voltage",\
+            "V-PP.RMS.Voltage","W-PP.RMS.Voltage"]
             listforposition = ["E","F","G","H"]
             Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
             Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
@@ -219,6 +240,14 @@ while True:
             listforposition = ["J","K"]
             Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
             Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed()
+        elif Jobs[Job_num] == "Winding Heating":
+            filename, group = DataPath().data_get()
+            sheetname = "8. Winding Heating"
+            listforname = ["MA_Command.Torque","Sensor-Torque","MA-RTD 1","MA-RTD 2",\
+            "U-PP.RMS.Voltage","V-PP.RMS.Voltage","W-PP.RMS.Voltage"]
+            listforposition = ["L","M"]
+            Dict_temp = TDMS(filename, group, listforname).Read_Tdms()
+            Excel(Dict_temp, Excel_filename, sheetname, listforposition).WriteWinding()
         else:
             print("关闭中 ...")
             break
