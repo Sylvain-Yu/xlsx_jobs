@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-# @Author: Sylvain-Yu
-# @Date:   2019-04-12 15:46:59
-# @Last Modified by:   Sylvain-Yu
-# @Last Modified time: 2019-04-12 22:25:08
-
+# -*- coding:utf-8 -*-
 import time
-t = time.time()
-
-print(t)
+from datetime import datetime
+a = datetime.now()
+time.sleep(3)
+b = datetime.now()
+c = b -a
+print(a,b,c)
