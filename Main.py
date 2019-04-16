@@ -12,10 +12,6 @@ from excel import Excel
 from tdms import TDMS
 
 
-
-
-
-
 # Start Process
 
 Excel_filename = DataPath().file_path_set()
