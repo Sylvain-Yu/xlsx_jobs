@@ -130,15 +130,23 @@ class Excel():  # read and write the xlsx and process.
         print("已处理完高转速试验数据\n")
         self.wb.save(self.filename)
 
-    def WriteWinding(self,RTD,picname): #unfinished
+    def WriteWinding(self,RTD,picname,i): #unfinished
         self.current_sheet["E20"] = RTD[0] #winding temp at start point:RTD 1
         self.current_sheet["G20"] = RTD[1] #winding temp at start point:RTD 2
         self.current_sheet["E21"] = RTD[2]
         self.current_sheet["G21"] = RTD[3]
+        p = 0
+        for t in self.Dict_temp["MA_Command.Torque"]:
+            if t > 0:
+                break
+            else:
+                p += 1
+        self.current_sheet["E16"] = self.Dict_temp["MA_Command.Torque"][p]
+        self.current_sheet["G16"] = self.Dict_temp["MA_Command.Torque"][i]
+        self.current_sheet["E17"] = self.Dict_temp["Sensor-Torque"][p+5]
+        self.current_sheet["G17"] = self.Dict_temp["Sensor-Torque"][i]
         img = Image(picname)
         self.current_sheet.add_image(img,"N7")
-        # self.current_sheet["E16"] =  # Torque Command at start point
-        # self.current_sheet["G16"] =  # Torque Command at end ponts
         print("已处理完成温升试验数据\n")
         self.wb.save(self.filename)
 
@@ -185,11 +193,10 @@ while True:
             listforposition = ["L","M"]
             Dict_temp = TDMS(filename, group, listforname).Read_Tdms()
             picname = filename[:-5]+".png"
-            RTD = Draw(filename,picname).draw8min_returnRTD()
-            Excel(Dict_temp, Excel_filename, sheetname, listforposition).WriteWinding(RTD,picname)
+            RTD,i = Draw(filename,picname).draw8min_returnRTD()
+            Excel(Dict_temp, Excel_filename, sheetname, listforposition).WriteWinding(RTD,picname,i)
         else:
             print("关闭中 ...")
             break
     except PermissionError:
-        print("数据处理失败，请先关闭需要操作的文件\n\
-..............................................\n")
+        print("数据处理失败，请先关闭需要操作的文件\n..............................................\n")
