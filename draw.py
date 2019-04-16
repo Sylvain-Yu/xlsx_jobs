@@ -10,11 +10,24 @@ class Draw():
     def __init__(self,filepath,picname):
         self.filepath = filepath
         self.picname = picname
+
     def readTDMS(self):
         tdms = TdmsFile(self.filepath)
         self.RTD1_list = tdms.object("Meta Data","MA-RTD 1").data
         self.RTD2_list = tdms.object("Meta Data","MA-RTD 2").data
         Time = tdms.object("Meta Data","Time").data
+        Torque_CMD = tdms.object("Meta Data","MA_Command.Torque").data
+        t0 = Torque_CMD[80]
+        j = 0
+        for t in Torque_CMD:
+            if t >= t0:
+                break
+            else:
+                j += 1
+        self.j = j
+        self.RTD1_list = self.RTD1_list[j:]
+        self.RTD2_list = self.RTD2_list[j:]
+        Time = Time[j:]
         # 时间需要年月日，默认设置为2019年1月1日
         zero = datetime(2019,1,1)
         minute_8 = datetime(2019,1,1,0,8)
@@ -59,7 +72,8 @@ class Draw():
         plt.savefig(self.picname)
         plt.show()
 
-    def RTD_retrieve (self):
+# @ 8 min info and draw the pic and return rtd value
+    def draw8min_returnRTD(self):
         self.readTDMS()
         i = 0
         for t in self.Relative_time:
@@ -75,12 +89,6 @@ class Draw():
          else self.RTD2_max_8)
         self.RTD1_0 = self.RTD1_list[0]
         self.RTD2_0 = self.RTD2_list[0]
-
-
-
-# @ 8 min info and draw
-    def draw8min_returnRTD(self):
-        self.RTD_retrieve()
         #draw pict
         plt_xy = (self.Relative_time[self.i],self.RTD_max_8)
         tip = "max T @8min="+str(self.RTD_max_8)+ "℃"+\
@@ -101,5 +109,5 @@ class Draw():
         plt.gcf().autofmt_xdate()
         plt.legend()
         plt.savefig(self.picname)
-        # plt.show()
-        return self.RTD1_0,self.RTD2_0,self.RTD1_max_8,self.RTD2_max_8
+        #plt.show()
+        return (self.RTD1_0,self.RTD2_0,self.RTD1_max_8,self.RTD2_max_8),self.i+self.j
