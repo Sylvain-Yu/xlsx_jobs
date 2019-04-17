@@ -43,7 +43,7 @@ class Excel():  # read and write the xlsx and process.
         i = 0
         print(self.Dict_temp["MB_Command.Speed"])
         for speed in self.Dict_temp["MB_Command.Speed"]:
-            if speed == self.Conti_Speed:
+            if int(speed) == int(self.Conti_Speed):
                 position = self.listforposition[self.j]+"36"
                 self.current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Voltage"][i]
                 position = self.listforposition[self.j]+"37"
@@ -69,7 +69,7 @@ class Excel():  # read and write the xlsx and process.
                 print("已找到转速为%s,第%s个数列"%(self.Conti_Speed,i+1))
                 i += 1
         if i == 0:
-            print("没有找到转速为%s的数据\n"%self.Speed)
+            print("没有找到转速为%s的数据\n"%self.Conti_Speed)
         else:
             self.wb.save(self.filename)
             print("完成数据处理\n")
