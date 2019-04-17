@@ -83,27 +83,28 @@ class Excel():  # read and write the xlsx and process.
             self.WriteConti_value()
 
 # 为高转速试验处理数据
-    def WriteHighSpeed(self):
-        point = 6
-        i = 0
-        zipped_list = list(zip(self.Dict_temp["MA-RTD 1"],self.Dict_temp["MA-RTD 2"]))
-        for RTD1 ,RTD2 in zipped_list:
-            if RTD1 > 55 or RTD2 > 55:
+    def WriteHighSpeed(self,RTD,picname,i):
+        self.current_sheet["F14"] = RTD[0] # 开始温度RTD1
+        self.current_sheet["G14"] = RTD[1] # 开始温度RTD2
+        self.current_sheet["F20"] = RTD[2] # 5分钟后RTD1温度
+        self.current_sheet["G20"] = RTD[3] # 5分钟后RTD2温度
+        p = 0
+        for s in self.Dict_temp["MB_Command.Speed"]:
+            if s > 0:
                 break
             else:
-                i += 1
-        k = i + 300
-        self.current_sheet["F20"] = zipped_list[k][0]
-        self.current_sheet["G20"] = zipped_list[k][1]
-        self.current_sheet["F14"] = zipped_list[i][0]
-        self.current_sheet["G14"] = zipped_list[i][0]
-        while i < len(self.Dict_temp["MA-RTD 1"]):
-            pos1 = self.listforposition[0] + str(point)
-            pos2 = self.listforposition[1] + str(point)
-            self.current_sheet[pos1] = zipped_list[i][0]
-            self.current_sheet[pos2] = zipped_list[i][1]
-            point += 1
-            i += 1
+                p += 1
+        else:
+            p = 0
+        # while i < len(self.Dict_temp["MA-RTD 1"]):
+        #     pos1 = self.listforposition[0] + str(point)
+        #     pos2 = self.listforposition[1] + str(point)
+        #     self.current_sheet[pos1] = zipped_list[i][0]
+        #     self.current_sheet[pos2] = zipped_list[i][1]
+        #     point += 1
+        #     i += 1
+        img = Image(picname)
+        self.current_sheet.add_image(img,"L6")
         print("已处理完高转速试验数据\n")
         self.wb.save(self.filename)
 
