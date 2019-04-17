@@ -8,7 +8,8 @@
 1. Write Specif BEMF worksheet
 2. Write Specif Conti Torque Worksheet
 3. Write Specif High Speed Worksheet
-4. add Image to Winding Heating Worksheet (developing)
+4. add Image to Winding Heating Worksheet &Write the sheet
+5. add short circuit function (developing)
 ## Contact
 **Name:Sylvain Yu**
 

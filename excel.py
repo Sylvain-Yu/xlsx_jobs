@@ -11,7 +11,7 @@ class Excel():  # read and write the xlsx and process.
         self.current_sheet = self.wb[self.sheetname]
 
     def WriteBEMF(self):
-        for v in Dict_temp["MB_Command.Speed"]:
+        for v in self.Dict_temp["MB_Command.Speed"]:
             speed_range = [1000,2000,3000,4000]
             try:
                 i = speed_range.index(v)
@@ -35,7 +35,7 @@ class Excel():  # read and write the xlsx and process.
         print(status)
 
     def Read_One_Value(self,single_pos):
-        value = self.current_sheet[single_pos]
+        value = self.current_sheet[single_pos].value
         return value
 
 #仅写入耐久的数据
@@ -66,10 +66,10 @@ class Excel():  # read and write the xlsx and process.
                 self.current_sheet[position] = self.Dict_temp["Sensor-Torque"][i]
                 position = self.listforposition[self.j]+"33"
                 self.current_sheet[position] = self.Dict_temp["DC Current"][i]
-                print("已找到转速为%s,第%s个数列"%(speed,i+1))
+                print("已找到转速为%s,第%s个数列"%(self.Conti_Speed,i+1))
                 i += 1
         if i == 0:
-            print("没有找到转速为%s的数据\n"%speed)
+            print("没有找到转速为%s的数据\n"%self.Speed)
         else:
             self.wb.save(self.filename)
             print("完成数据处理\n")
@@ -123,8 +123,8 @@ class Excel():  # read and write the xlsx and process.
         self.current_sheet["G16"] = self.Dict_temp["MA_Command.Torque"][i]
         self.current_sheet["E17"] = self.Dict_temp["Sensor-Torque"][p+10]
         self.current_sheet["G17"] = self.Dict_temp["Sensor-Torque"][i]
-        self.current_sheet["E15"] = self.Dict_temp["SUM/AVG-RMS.Current"][p+10]/1.414
-        self.current_sheet["G15"] = self.Dict_temp["SUM/AVG-RMS.Current"][i]/1.414
+        self.current_sheet["E15"] = self.Dict_temp["SUM/AVG-RMS.Current"][p+10]/1.732
+        self.current_sheet["G15"] = self.Dict_temp["SUM/AVG-RMS.Current"][i]/1.732
         img = Image(picname)
         self.current_sheet.add_image(img,"N7")
         print("已处理完成温升试验数据\n")

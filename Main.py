@@ -15,7 +15,7 @@ from tdms import TDMS
 # Start Process
 
 Excel_filename = DataPath().file_path_set()
-Job_list = ["退出","BEMF","Continue Torque","High Speed","Winding Heating"]
+Job_list = ["退出","BEMF","Short Circuit","Continue Torque","High Speed","Winding Heating"]
 while True:
     try:
         Job_num = Jobs(Job_list).Select()
@@ -58,6 +58,8 @@ while True:
             picname = filename[:-5]+".png"
             RTD,i = Draw(filename,picname).drawXmin_returnRTD(8)
             Excel(Dict_temp, Excel_filename, sheetname, listforposition).WriteWinding(RTD,picname,i)
+        elif Job_list[Job_num] == "Short Circuit":
+        	pass
         else:
             print("关闭中 ...")
             break
