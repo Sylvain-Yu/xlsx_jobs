@@ -41,10 +41,12 @@ while True:
         elif Job_list[Job_num] == "High Speed":
             filename, group = DataPath().data_get()
             sheetname = "5. High Speed"
-            listforname = ["MA-RTD 1","MA-RTD 2"]
+            listforname = ["MB_Command.Speed"]
             listforposition = ["J","K"]
             Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-            Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed()
+            picname = filename[:-5]+".png"
+            RTD,i = Draw(filename,picname).drawXmin_returnRTD(5)
+            Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed(RTD,picname,i)
         elif Job_list[Job_num] == "Winding Heating":
             filename, group = DataPath().data_get()
             sheetname = "8. Winding Heating"
@@ -54,7 +56,7 @@ while True:
             listforposition = ["L","M"]
             Dict_temp = TDMS(filename, group, listforname).Read_Tdms()
             picname = filename[:-5]+".png"
-            RTD,i = Draw(filename,picname).draw8min_returnRTD()
+            RTD,i = Draw(filename,picname).drawXmin_returnRTD(8)
             Excel(Dict_temp, Excel_filename, sheetname, listforposition).WriteWinding(RTD,picname,i)
         else:
             print("关闭中 ...")
