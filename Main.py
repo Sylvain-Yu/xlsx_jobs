@@ -16,9 +16,10 @@ from tdms import TDMS
 
 Excel_filename = DataPath().file_path_set()
 Job_list = ["退出","BEMF","Short Circuit","Continue Torque","High Speed","Winding Heating"]
+tp = Jobs().xlsx_tpye()
 while True:
     try:
-        Job_num = Jobs(Job_list).Select()
+        Job_num = Jobs().Select(Job_list)
         print("正在尝试操作: %s ..."%Job_list[Job_num])
         if Job_list[Job_num] == "BEMF":
             filename, group = DataPath().data_get()
@@ -31,16 +32,23 @@ while True:
             Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
         elif Job_list[Job_num] == "Continue Torque":
             filename, group = DataPath().data_get()
-            sheetname = "4. Cont. Torque Curve"
+            if tp == 0:
+                sheetname = "4. Cont. Torque Curve"
+            else:
+                sheetname = "6. Cont. Torque Curve"
             listforname = ["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
             "SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current",\
-            "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF","DC Current"] 
+            "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF","DC Current",\
+            "MA-RTD 1","MA-RTD 2"] 
             listforposition = ["G","I","K"]
             Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
             Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteConti()
         elif Job_list[Job_num] == "High Speed":
             filename, group = DataPath().data_get()
-            sheetname = "5. High Speed"
+            if tp == 0:    
+                sheetname = "5. High Speed"
+            else:
+                sheetname = "11. High Speed"
             listforname = ["MB_Command.Speed"]
             listforposition = ["J","K"]
             Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
@@ -59,7 +67,14 @@ while True:
             RTD,i = Draw(filename,picname).drawXmin_returnRTD(8)
             Excel(Dict_temp, Excel_filename, sheetname, listforposition).WriteWinding(RTD,picname,i)
         elif Job_list[Job_num] == "Short Circuit":
-        	pass
+            filename, group = DataPath().data_get()
+            sheetname = "5. Short circuit"
+            listforname = ["MB_Command.Speed","Sensor-Torque",\
+            "U-RMS.Current","U-F.Current","V-RMS.Current","V-F.Current",\
+            "W-RMS.Current","W-F.Current","MA-Motor TEMP"]
+            listforposition = ["D","E","F","i","j","k","L","M"]
+            Dict_temp = TDMS(filename , group , listforname).Read_Tdms()
+            Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteSc()
         else:
             print("关闭中 ...")
             break

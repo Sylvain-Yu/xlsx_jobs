@@ -11,6 +11,7 @@ class Excel():  # read and write the xlsx and process.
         self.current_sheet = self.wb[self.sheetname]
 
     def WriteBEMF(self):
+        print("正在处理反电动势数据中，请等待...")
         for v in self.Dict_temp["MB_Command.Speed"]:
             speed_range = [1000,2000,3000,4000]
             try:
@@ -41,7 +42,8 @@ class Excel():  # read and write the xlsx and process.
 #仅写入耐久的数据
     def WriteConti_value(self):
         i = 0
-        print(self.Dict_temp["MB_Command.Speed"])
+        j = 0 # 用来判断是否找到对应参数 >0 为找到
+        # print(self.Dict_temp["MB_Command.Speed"])
         for speed in self.Dict_temp["MB_Command.Speed"]:
             if int(speed) == int(self.Conti_Speed):
                 position = self.listforposition[self.j]+"36"
@@ -66,24 +68,31 @@ class Excel():  # read and write the xlsx and process.
                 self.current_sheet[position] = self.Dict_temp["Sensor-Torque"][i]
                 position = self.listforposition[self.j]+"33"
                 self.current_sheet[position] = self.Dict_temp["DC Current"][i]
-                print("已找到转速为%s,第%s个数列"%(self.Conti_Speed,i+1))
-                i += 1
-        if i == 0:
+                position = self.listforposition[self.j]+"22"
+                self.current_sheet[position] = self.Dict_temp["MA-RTD 1"][i]
+                position = self.listforposition[self.j]+"23"
+                self.current_sheet[position] = self.Dict_temp["MB-RTD 2"][i]
+
+
+                j += 1
+            i += 1
+        if j == 0:
             print("没有找到转速为%s的数据\n"%self.Conti_Speed)
         else:
-            self.wb.save(self.filename)
-            print("完成数据处理\n")
-
+            print("已找到转速为%s,找到%s个，已选取最后一组数据"%(self.Conti_Speed,j))
 # 连续扭矩试验处理数据，属于源为Instantly
     def WriteConti(self):
+        print("正在处理连续扭矩数据中，请等待...")
         listforNum = range(len(self.listforposition))
         SpeedPositionList = [ x + "6" for x in self.listforposition]
         for self.j,Speed_pos in zip(listforNum,SpeedPositionList):
             self.Conti_Speed = self.Read_One_Value(Speed_pos)
             self.WriteConti_value()
+        self.save()
 
 # 为高转速试验处理数据
     def WriteHighSpeed(self,RTD,picname,i):
+        print("正在处理高速数据中，请等待...")
         self.current_sheet["F14"] = RTD[0] # 开始温度RTD1
         self.current_sheet["G14"] = RTD[1] # 开始温度RTD2
         self.current_sheet["F20"] = RTD[2] # 5分钟后RTD1温度
@@ -96,19 +105,54 @@ class Excel():  # read and write the xlsx and process.
                 p += 1
         else:
             p = 0
-        # while i < len(self.Dict_temp["MA-RTD 1"]):
-        #     pos1 = self.listforposition[0] + str(point)
-        #     pos2 = self.listforposition[1] + str(point)
-        #     self.current_sheet[pos1] = zipped_list[i][0]
-        #     self.current_sheet[pos2] = zipped_list[i][1]
-        #     point += 1
-        #     i += 1
         img = Image(picname)
         self.current_sheet.add_image(img,"L6")
         print("已处理完高转速试验数据\n")
         self.wb.save(self.filename)
 
+    def WriteSc_value(self):
+        i = 0
+        j = 0 # 用来判断是否找到对应参数 >0 为找到
+        for speed in self.Dict_temp["MB_Command.Speed"]:
+            if int(speed) == int(self.target_speed):
+                position = self.listforposition[self.j] + "10"
+                self.current_sheet[position] = self.Dict_temp["U-RMS.Current"][i]
+                position = self.listforposition[self.j] + "11"
+                self.current_sheet[position] = self.Dict_temp["U-F.Current"][i]
+                position = self.listforposition[self.j] + "12"
+                self.current_sheet[position] = self.Dict_temp["V-RMS.Current"][i]
+                position = self.listforposition[self.j] + "13"
+                self.current_sheet[position] = self.Dict_temp["V-F.Current"][i]
+                position = self.listforposition[self.j] + "14"
+                self.current_sheet[position] = self.Dict_temp["W-RMS.Current"][i]
+                position = self.listforposition[self.j] + "15"
+                self.current_sheet[position] = self.Dict_temp["W-F.Current"][i]
+                position = self.listforposition[self.j] + "20"
+                self.current_sheet[position] = self.Dict_temp["Sensor-Torque"][i]
+                position = self.listforposition[self.j] + "21"
+                self.current_sheet[position] = self.Dict_temp["MA-Motor TEMP"][i]
+                j += 1
+            i += 1
+        if j == 0:
+            print("没有找到转速为%s的数据\n"%self.target_speed)
+        else:
+            print("已找到转速为%s,找到%s个，已选取最后一组数据"%(self.target_speed,j))
+
+    def save(self):
+        self.wb.save(self.filename)
+        print("完成数据处理\n")
+
+    def WriteSc(self):
+        print("正在处理短路电流数据中，请等待...")
+        listforNum = range(len(self.listforposition))
+        SpeedPositionList = [ x + "9" for x in self.listforposition]
+        for self.j ,Speed_pos in zip(listforNum,SpeedPositionList):
+            self.target_speed = self.Read_One_Value(Speed_pos)
+            self.WriteSc_value()
+        self.save()
+
     def WriteWinding(self,RTD,picname,i): #unfinished
+        print("正在处理连续扭矩数据中，请等待...")
         self.current_sheet["E20"] = RTD[0] #winding temp at start point:RTD 1
         self.current_sheet["G20"] = RTD[1] #winding temp at start point:RTD 2
         self.current_sheet["E21"] = RTD[2]
