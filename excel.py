@@ -45,7 +45,7 @@ class Excel():  # read and write the xlsx and process.
         j = 0 # 用来判断是否找到对应参数 >0 为找到
         # print(self.Dict_temp["MB_Command.Speed"])
         for speed in self.Dict_temp["MB_Command.Speed"]:
-            if int(speed) == int(self.Conti_Speed):
+            if speed == self.Conti_Speed:
                 position = self.listforposition[self.j]+"36"
                 self.current_sheet[position] = self.Dict_temp["SUM/AVG-RMS.Voltage"][i]
                 position = self.listforposition[self.j]+"37"
@@ -71,7 +71,7 @@ class Excel():  # read and write the xlsx and process.
                 position = self.listforposition[self.j]+"22"
                 self.current_sheet[position] = self.Dict_temp["MA-RTD 1"][i]
                 position = self.listforposition[self.j]+"23"
-                self.current_sheet[position] = self.Dict_temp["MB-RTD 2"][i]
+                self.current_sheet[position] = self.Dict_temp["MA-RTD 2"][i]
 
 
                 j += 1
@@ -114,7 +114,7 @@ class Excel():  # read and write the xlsx and process.
         i = 0
         j = 0 # 用来判断是否找到对应参数 >0 为找到
         for speed in self.Dict_temp["MB_Command.Speed"]:
-            if int(speed) == int(self.target_speed):
+            if speed == self.target_speed:
                 position = self.listforposition[self.j] + "10"
                 self.current_sheet[position] = self.Dict_temp["U-RMS.Current"][i]
                 position = self.listforposition[self.j] + "11"
