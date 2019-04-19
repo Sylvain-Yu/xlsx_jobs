@@ -21,20 +21,19 @@ class Excel():  # read and write the xlsx and process.
     def WriteBEMF_value(self):
         i = 0
         j = 0
-
         for v in self.Dict_temp["MB_Command.Speed"]:
             if self.target_speed == v :
-                position = self.listforposition[i]+"14"
+                position = self.listforposition[self.j]+"14"
                 self.current_sheet[position] = self.Dict_temp["U-RMS.Voltage"][i]
-                position = self.listforposition[i]+"15"
+                position = self.listforposition[self.j]+"15"
                 self.current_sheet[position] = self.Dict_temp["V-RMS.Voltage"][i]
-                position = self.listforposition[i]+"16"
+                position = self.listforposition[self.j]+"16"
                 self.current_sheet[position] = self.Dict_temp["W-RMS.Voltage"][i]
-                position = self.listforposition[i]+"20"
+                position = self.listforposition[self.j]+"20"
                 self.current_sheet[position] = self.Dict_temp["U-PP.RMS.Voltage"][i]
-                position = self.listforposition[i]+"21"
+                position = self.listforposition[self.j]+"21"
                 self.current_sheet[position] = self.Dict_temp["V-PP.RMS.Voltage"][i]
-                position = self.listforposition[i]+"22"
+                position = self.listforposition[self.j]+"22"
                 self.current_sheet[position] = self.Dict_temp["W-PP.RMS.Voltage"][i]
                 j += 1
             i += 1
