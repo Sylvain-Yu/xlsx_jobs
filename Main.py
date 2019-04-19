@@ -22,7 +22,7 @@ while True:
         print("正在尝试操作: %s ..."%Job_list[Job_num])
         if Job_list[Job_num] == "BEMF":
             filename, group = DataPath().data_get()
-            sheetname = "2.Motor BEMF"
+            sheetname = "Motor BEMF"
             listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage",\
             "V-RMS.Voltage","W-RMS.Voltage","U-PP.RMS.Voltage",\
             "V-PP.RMS.Voltage","W-PP.RMS.Voltage"]

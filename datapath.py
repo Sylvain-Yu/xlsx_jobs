@@ -4,7 +4,7 @@ import os
 
 class DataPath():# input value set
     def file_path_set(self):
-        file_path = os.listdir(".")
+        file_path = os.listdir("../")
         Excel_path_list = []
         for Excel in file_path:
             if ".xlsx" in Excel.lower():
