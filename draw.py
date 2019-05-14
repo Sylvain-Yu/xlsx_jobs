@@ -112,4 +112,5 @@ class Draw():
         plt.legend()
         plt.savefig(self.picname)
         #plt.show()
+        # return RTD list and Index for 8 min
         return (self.RTD1_0,self.RTD2_0,self.RTD1_max_xmin,self.RTD2_max_xmin),self.i+self.j

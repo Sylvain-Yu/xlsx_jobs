@@ -56,7 +56,7 @@ class Excel():  # read and write the xlsx and process.
     def WriteConti_value(self):
         i = 0
         j = 0 # 用来判断是否找到对应参数 >0 为找到
-        # print(self.Dict_temp["MB_Command.Speed"])
+        print(self.Dict_temp["MB_Command.Speed"])
         for speed in self.Dict_temp["MB_Command.Speed"]:
             if speed == self.Conti_Speed:
                 position = self.listforposition[self.j]+"36"
@@ -181,5 +181,5 @@ class Excel():  # read and write the xlsx and process.
         self.current_sheet["G15"] = self.Dict_temp["SUM/AVG-RMS.Current"][i]/1.732
         img = Image(picname)
         self.current_sheet.add_image(img,"N7")
-        print("已处理完成温升试验数据\n")
+        print("已处理完成温升试验数据")
         self.wb.save(self.filename)

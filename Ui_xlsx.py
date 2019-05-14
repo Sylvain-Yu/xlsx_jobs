@@ -7,16 +7,24 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QIcon
+from excel import Excel
+from nptdms import TdmsFile
+from tdms import TDMS
+from openpyxl import load_workbook
+from openpyxl.drawing.image import Image
+from draw import Draw
 import sys
+import os
 
 class Ui_Main_ui(object):
     def __init__(self):
-        self.cb_list = ["BEMF","High Speed","Torque vs Current",]
+        self.cb_list = ["BEMF","High Speed","Torque vs Current","Short Circuit","Continue Torque","Winding Heating"]
 
     def setupUi(self, Main_ui):
-        self.Main_ui = Main_ui
         Main_ui.setObjectName("Main_ui")
         Main_ui.resize(400, 204)
+        Main_ui.setWindowIcon(QIcon("icon_co.png"))
         self.formLayout = QtWidgets.QFormLayout(Main_ui)
         self.formLayout.setObjectName("formLayout")
         self.gridLayout = QtWidgets.QGridLayout()
@@ -47,9 +55,14 @@ class Ui_Main_ui(object):
         self.cb.setObjectName("cb")
         self.cb.addItems(self.cb_list)
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.SpanningRole, self.cb)
+        self.cb_2 = QtWidgets.QComboBox(Main_ui)
+        self.cb_2.setObjectName("cb_2")
+        self.cb_2.addItems(["Instantly Data","Meta Data"])
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.SpanningRole, self.cb_2)
         self.Process_btn = QtWidgets.QPushButton(Main_ui)
         self.Process_btn.setObjectName("Process_btn")
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.Process_btn)
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.Process_btn)
+
 
         self.retranslateUi(Main_ui)
         QtCore.QMetaObject.connectSlotsByName(Main_ui)
@@ -70,18 +83,67 @@ class Ui_Main_ui(object):
         self.Process_btn.setText(_translate("Main_ui", "Process"))
 
     def openTDMSfile(self):
-        fname= QtWidgets.QFileDialog.getOpenFileName()
+        fname= QtWidgets.QFileDialog.getOpenFileName(QtWidgets.QWidget(),'Open File','','TDMS(*.tdms)')
         self.Tdms_path.setText(fname[0])
 
     def openExcelfile(self):
-        fname= QtWidgets.QFileDialog.getOpenFileName(self.Main_ui,'Open File','','Excel(*.xlsx)')
+        fname= QtWidgets.QFileDialog.getOpenFileName(QtWidgets.QWidget(),'Open File','','Excel(*.xlsx *XLSX)')
         self.Excel_path.setText(fname[0])
 
     def Process(self):
-        if self.Tdms_path.text() and self.Excel_path:
-            pass
+        if os.path.isfile(self.Tdms_path.text()) and os.path.isfile(self.Excel_path.text()):
+            filename = self.Tdms_path.text()
+            Excel_filename = self.Excel_path.text()
+            group = self.cb_2.currentText()
+            if self.cb.currentText() == "BEMF":
+                sheetname = "Motor BEMF"
+                listforname = ["MB_Command.Speed","MA_Command.Torque","U-RMS.Voltage",\
+                "V-RMS.Voltage","W-RMS.Voltage","U-PP.RMS.Voltage",\
+                "V-PP.RMS.Voltage","W-PP.RMS.Voltage"]
+                listforposition = ["E","F","G","H"]
+                Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+                Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
+            elif self.cb.currentText() =="High Speed":
+                sheetname = "High Speed"
+                listforname = ["MB_Command.Speed"]
+                listforposition = ["J","K"]
+                Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+                picname = filename[:-5]+".png"
+                RTD,i = Draw(filename,picname).drawXmin_returnRTD(5)
+                Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed(RTD,picname,i)
+            elif self.cb.currentText() =="Torque vs Current":
+                pass
+            elif self.cb.currentText() == "Short Circuit":
+                sheetname = "Short circuit"
+                listforname = ["MB_Command.Speed","Sensor-Torque",\
+                "U-RMS.Current","U-F.Current","V-RMS.Current","V-F.Current",\
+                "W-RMS.Current","W-F.Current","MA-Motor TEMP"]
+                listforposition = ["D","E","F","G"]
+                Dict_temp = TDMS(filename , group , listforname).Read_Tdms()
+                Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteSc()
+            elif self.cb.currentText() == "Continue Torque":
+                sheetname = "Cont. Torque Curve"
+                listforname = ["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
+                "SUM/AVG-RMS.Voltage","SUM/AVG-F.Voltage","SUM/AVG-RMS.Current","SUM/AVG-F.Current",\
+                "SUM/AVG-Kwatts","SUM/AVG-F.Kwatts","SUM/AVG-PF","SUM/AVG-F.PF","DC Current",\
+                "MA-RTD 1","MA-RTD 2"] 
+                listforposition = ["G","I","K"]
+                Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
+                Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteConti()
+            elif self.cb.currentText() =="Winding Heating":
+                sheetname = "Winding Heating"
+                listforname = ["MA_Command.Torque","Sensor-Torque",\
+                "U-PP.RMS.Voltage","V-PP.RMS.Voltage","W-PP.RMS.Voltage",\
+                "SUM/AVG-RMS.Current"]#no need for RTD
+                listforposition = ["L","M"]
+                Dict_temp = TDMS(filename, group, listforname).Read_Tdms()
+                picname = filename[:-5]+".png"
+                RTD,i = Draw(filename,picname).drawXmin_returnRTD(8) #8 imply 8 minutes
+                Excel(Dict_temp, Excel_filename, sheetname, listforposition).WriteWinding(RTD,picname,i)
+            else:
+                QtWidgets.QMessageBox.about(QtWidgets.QWidget(),"Tips","好像哪里出错了！")
         else:
-            QtWidgets.QMessageBox.about(self.Main_ui,"Tips","请先选择路径！")
+            QtWidgets.QMessageBox.about(QtWidgets.QWidget(),"Tips","请先选择路径！")
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
