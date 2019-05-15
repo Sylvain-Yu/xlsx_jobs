@@ -5,6 +5,7 @@ import matplotlib.dates as mdates
 import numpy as np
 from nptdms import TdmsFile
 from datetime import datetime
+import re
 
 class Draw():
     def __init__(self,filepath,picname):
@@ -60,7 +61,8 @@ class Draw():
         ax.annotate(s = tip, xy = plt_xy, xytext = plt_xytext,\
             arrowprops = dict(facecolor="red",shrink=0.05),)
 
-        ax.set(xlabel="Time",ylabel="Temperature [℃]",title=self.picname[:-4])
+        title = self.picname.split('/')[-1][:-4]
+        ax.set(xlabel="Time",ylabel="Temperature [℃]",title=title)
         ax.plot(self.Relative_time,self.RTD1_list,label="RTD 1")
         ax.plot(self.Relative_time,self.RTD2_list,label="RTD 2")
         ax.plot(T_max,RTD_max,"ro")
@@ -101,7 +103,8 @@ class Draw():
         f,ax = plt.subplots(1,1)
         ax.annotate(s = tip, xy = plt_xy, xytext = plt_xytext,\
             arrowprops = dict(facecolor="red",shrink=0.05),)
-        ax.set(xlabel="Time",ylabel="Temperature [℃]",title=self.picname[:-4])
+        title = self.picname.split('/')[-1][:-4]
+        ax.set(xlabel="Time",ylabel="Temperature [℃]",title=title)
         ax.plot(self.Relative_time,self.RTD1_list,label="RTD 1")
         ax.plot(self.Relative_time,self.RTD2_list,label="RTD 2")
         ax.plot(self.minute,self.RTD_max,"ro")

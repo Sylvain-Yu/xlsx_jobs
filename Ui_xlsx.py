@@ -19,9 +19,10 @@ import os
 
 class Ui_Main_ui(object):
     def __init__(self):
-        self.cb_list = ["BEMF","High Speed","Torque vs Current","Short Circuit","Continue Torque","Winding Heating"]
+        self.cb_list = ["BEMF","High Speed","Short Circuit","Continue Torque","Winding Heating"]
 
     def setupUi(self, Main_ui):
+        self.Main_ui = Main_ui
         Main_ui.setObjectName("Main_ui")
         Main_ui.resize(400, 204)
         Main_ui.setWindowIcon(QIcon("icon_co.png"))
@@ -63,7 +64,6 @@ class Ui_Main_ui(object):
         self.Process_btn.setObjectName("Process_btn")
         self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.Process_btn)
 
-
         self.retranslateUi(Main_ui)
         QtCore.QMetaObject.connectSlotsByName(Main_ui)
 
@@ -102,7 +102,8 @@ class Ui_Main_ui(object):
                 "V-PP.RMS.Voltage","W-PP.RMS.Voltage"]
                 listforposition = ["E","F","G","H"]
                 Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
-                Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
+                tips = Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteBEMF()
+
             elif self.cb.currentText() =="High Speed":
                 sheetname = "High Speed"
                 listforname = ["MB_Command.Speed"]
@@ -110,9 +111,11 @@ class Ui_Main_ui(object):
                 Dict_temp = TDMS(filename,group,listforname).Read_Tdms()
                 picname = filename[:-5]+".png"
                 RTD,i = Draw(filename,picname).drawXmin_returnRTD(5)
-                Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed(RTD,picname,i)
+                tips = Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteHighSpeed(RTD,picname,i)
+
             elif self.cb.currentText() =="Torque vs Current":
                 pass
+
             elif self.cb.currentText() == "Short Circuit":
                 sheetname = "Short circuit"
                 listforname = ["MB_Command.Speed","Sensor-Torque",\
@@ -121,6 +124,7 @@ class Ui_Main_ui(object):
                 listforposition = ["D","E","F","G"]
                 Dict_temp = TDMS(filename , group , listforname).Read_Tdms()
                 Excel(Dict_temp,Excel_filename,sheetname,listforposition).WriteSc()
+
             elif self.cb.currentText() == "Continue Torque":
                 sheetname = "Cont. Torque Curve"
                 listforname = ["MB_Command.Speed","MA_Command.Torque","Sensor-Torque",\
@@ -141,9 +145,10 @@ class Ui_Main_ui(object):
                 RTD,i = Draw(filename,picname).drawXmin_returnRTD(8) #8 imply 8 minutes
                 Excel(Dict_temp, Excel_filename, sheetname, listforposition).WriteWinding(RTD,picname,i)
             else:
-                QtWidgets.QMessageBox.about(QtWidgets.QWidget(),"Tips","好像哪里出错了！")
+                tips = "No setting for current Combox Text"
+            QtWidgets.QMessageBox.about(self.Main_ui,"Tips",tips)
         else:
-            QtWidgets.QMessageBox.about(QtWidgets.QWidget(),"Tips","请先选择路径！")
+            QtWidgets.QMessageBox.about(self.Main_ui,"Tips","Please choose the path first!")
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
